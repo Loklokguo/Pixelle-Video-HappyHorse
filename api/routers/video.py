@@ -131,12 +131,24 @@ async def generate_video_sync(
             "media_width": media_width,
             "media_height": media_height,
             "media_workflow": request_body.media_workflow,
+            "media_provider": request_body.media_provider,
             "video_fps": request_body.video_fps,
             "frame_template": request_body.frame_template,
             "prompt_prefix": request_body.prompt_prefix,
             "bgm_path": request_body.bgm_path,
             "bgm_volume": request_body.bgm_volume,
         }
+
+        # HappyHorse-specific parameters
+        if request_body.media_provider == "happyhorse":
+            if request_body.happyhorse_resolution:
+                video_params["happyhorse_resolution"] = request_body.happyhorse_resolution
+            if request_body.happyhorse_duration is not None:
+                video_params["happyhorse_duration"] = request_body.happyhorse_duration
+            if request_body.happyhorse_watermark is not None:
+                video_params["happyhorse_watermark"] = request_body.happyhorse_watermark
+            if request_body.happyhorse_seed is not None:
+                video_params["happyhorse_seed"] = request_body.happyhorse_seed
         
         # Add TTS workflow if specified
         if request_body.tts_workflow:
@@ -234,6 +246,7 @@ async def generate_video_async(
                 "media_width": media_width,
                 "media_height": media_height,
                 "media_workflow": request_body.media_workflow,
+                "media_provider": request_body.media_provider,
                 "video_fps": request_body.video_fps,
                 "frame_template": request_body.frame_template,
                 "prompt_prefix": request_body.prompt_prefix,
@@ -242,6 +255,17 @@ async def generate_video_async(
                 # Progress callback can be added here if needed
                 # "progress_callback": lambda event: task_manager.update_progress(...)
             }
+
+            # HappyHorse-specific parameters
+            if request_body.media_provider == "happyhorse":
+                if request_body.happyhorse_resolution:
+                    video_params["happyhorse_resolution"] = request_body.happyhorse_resolution
+                if request_body.happyhorse_duration is not None:
+                    video_params["happyhorse_duration"] = request_body.happyhorse_duration
+                if request_body.happyhorse_watermark is not None:
+                    video_params["happyhorse_watermark"] = request_body.happyhorse_watermark
+                if request_body.happyhorse_seed is not None:
+                    video_params["happyhorse_seed"] = request_body.happyhorse_seed
             
             # Add TTS workflow if specified
             if request_body.tts_workflow:

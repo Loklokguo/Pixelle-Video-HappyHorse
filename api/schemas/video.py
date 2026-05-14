@@ -59,6 +59,19 @@ class VideoGenerateRequest(BaseModel):
     # === Media Parameters ===
     # Note: media_width and media_height are auto-determined from template meta tags
     media_workflow: Optional[str] = Field(None, description="Custom media workflow (image or video)")
+    media_provider: Literal["comfyui", "happyhorse"] = Field(
+        "comfyui",
+        description="Media provider: 'comfyui' (default, uses ComfyUI/RunningHub workflows) or 'happyhorse' (DashScope text-to-video)"
+    )
+    happyhorse_resolution: Optional[Literal["720P", "1080P"]] = Field(
+        None, description="HappyHorse video resolution (overrides config default)"
+    )
+    happyhorse_duration: Optional[int] = Field(
+        None, ge=3, le=15,
+        description="HappyHorse video duration in seconds (3-15). If not set, uses TTS audio duration clamped to range."
+    )
+    happyhorse_watermark: Optional[bool] = Field(None, description="HappyHorse watermark override")
+    happyhorse_seed: Optional[int] = Field(None, description="HappyHorse random seed for reproducibility")
     
     # === Video Parameters ===
     video_fps: int = Field(30, ge=15, le=60, description="Video FPS")

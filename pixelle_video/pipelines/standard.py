@@ -268,6 +268,11 @@ class StandardPipeline(LinearVideoPipeline):
             media_width=ctx.params.get("media_width"),
             media_height=ctx.params.get("media_height"),
             media_workflow=ctx.params.get("media_workflow"),
+            media_provider=ctx.params.get("media_provider", "comfyui"),
+            happyhorse_resolution=ctx.params.get("happyhorse_resolution"),
+            happyhorse_duration=ctx.params.get("happyhorse_duration"),
+            happyhorse_watermark=ctx.params.get("happyhorse_watermark"),
+            happyhorse_seed=ctx.params.get("happyhorse_seed"),
             frame_template=ctx.params.get("frame_template") or "1080x1920/default.html",
             template_params=ctx.params.get("template_params")
         )

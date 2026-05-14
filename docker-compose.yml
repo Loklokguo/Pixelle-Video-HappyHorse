@@ -58,6 +58,9 @@ services:
       # Custom resources in data/* will override defaults
     environment:
       - TZ=Asia/Shanghai
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
+      - DASHSCOPE_REGION=${DASHSCOPE_REGION:-}
+      - DASHSCOPE_WORKSPACE_ID=${DASHSCOPE_WORKSPACE_ID:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

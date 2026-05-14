@@ -61,6 +61,11 @@ def render_single_output(pixelle_video, video_params):
     custom_values_for_video = video_params.get("template_params", {})
     workflow_key = video_params.get("media_workflow")
     prompt_prefix = video_params.get("prompt_prefix", "")
+    media_provider = video_params.get("media_provider", "comfyui")
+    happyhorse_resolution = video_params.get("happyhorse_resolution")
+    happyhorse_duration = video_params.get("happyhorse_duration")
+    happyhorse_watermark = video_params.get("happyhorse_watermark")
+    happyhorse_seed = video_params.get("happyhorse_seed")
     
     with st.container(border=True):
         st.markdown(f"**{tr('section.video_generation')}**")
@@ -154,7 +159,19 @@ def render_single_output(pixelle_video, video_params):
                 # Add custom template parameters if any
                 if custom_values_for_video:
                     video_params["template_params"] = custom_values_for_video
-                
+
+                # Add HappyHorse params if provider is happyhorse
+                if media_provider == "happyhorse":
+                    video_params["media_provider"] = "happyhorse"
+                    if happyhorse_resolution:
+                        video_params["happyhorse_resolution"] = happyhorse_resolution
+                    if happyhorse_duration is not None:
+                        video_params["happyhorse_duration"] = happyhorse_duration
+                    if happyhorse_watermark is not None:
+                        video_params["happyhorse_watermark"] = happyhorse_watermark
+                    if happyhorse_seed is not None:
+                        video_params["happyhorse_seed"] = happyhorse_seed
+
                 result = run_async(pixelle_video.generate_video(**video_params))
                 
                 # Calculate total generation time
@@ -250,6 +267,7 @@ def render_batch_output(pixelle_video, video_params):
                 "title_prefix": video_params.get("title_prefix"),
                 "n_scenes": video_params.get("n_scenes") or 5,
                 "media_workflow": video_params.get("media_workflow"),
+                "media_provider": video_params.get("media_provider", "comfyui"),
                 "frame_template": video_params.get("frame_template"),
                 "prompt_prefix": video_params.get("prompt_prefix") or "",
                 "bgm_path": video_params.get("bgm_path"),
@@ -258,6 +276,13 @@ def render_batch_output(pixelle_video, video_params):
                 "media_width": video_params.get("media_width"),
                 "media_height": video_params.get("media_height"),
             }
+
+            # Add HappyHorse params for batch
+            if video_params.get("media_provider") == "happyhorse":
+                for hh_key in ("happyhorse_resolution", "happyhorse_duration", "happyhorse_watermark", "happyhorse_seed"):
+                    val = video_params.get(hh_key)
+                    if val is not None:
+                        shared_config[hh_key] = val
             
             # Add TTS parameters based on mode (only add non-None values)
             if shared_config["tts_inference_mode"] == "local":

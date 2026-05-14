@@ -215,14 +215,30 @@ class FrameProcessor:
             "prompt": frame.image_prompt,
             "workflow": config.media_workflow,  # Pass workflow from config (None = use default)
             "media_type": media_type,
+            "media_provider": config.media_provider,  # Pass provider selection
             "width": config.media_width,
             "height": config.media_height,
             "index": frame.index + 1,  # 1-based index for workflow
         }
-        
-        # For video workflows: pass audio duration as target video duration
-        # This ensures video length matches audio length from the source
-        if is_video_workflow and frame.duration:
+
+        # HappyHorse-specific params
+        if config.media_provider == "happyhorse":
+            if config.happyhorse_resolution:
+                media_params["happyhorse_resolution"] = config.happyhorse_resolution
+            if config.happyhorse_watermark is not None:
+                media_params["happyhorse_watermark"] = config.happyhorse_watermark
+            if config.happyhorse_seed is not None:
+                media_params["seed"] = config.happyhorse_seed
+            # HappyHorse duration: explicit override > TTS audio duration > default (5s)
+            if config.happyhorse_duration is not None:
+                media_params["duration"] = config.happyhorse_duration
+                logger.info(f"  -> HappyHorse duration override: {config.happyhorse_duration}s (ignoring TTS duration)")
+            elif frame.duration:
+                media_params["duration"] = frame.duration
+                logger.info(f"  -> HappyHorse using TTS audio duration: {frame.duration:.2f}s")
+
+        # For ComfyUI video workflows: pass audio duration as target video duration
+        elif is_video_workflow and frame.duration:
             media_params["duration"] = frame.duration
             logger.info(f"  → Generating video with target duration: {frame.duration:.2f}s (from TTS audio)")
         

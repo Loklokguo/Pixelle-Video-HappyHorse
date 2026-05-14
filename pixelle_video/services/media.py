@@ -113,6 +113,8 @@ class MediaService(ComfyBaseService):
         workflow: Optional[str] = None,
         # Media type specification (required for proper handling)
         media_type: str = "image",  # "image" or "video"
+        # Provider selection
+        media_provider: str = "comfyui",  # "comfyui" or "happyhorse"
         # ComfyUI connection (optional overrides)
         comfyui_url: Optional[str] = None,
         runninghub_api_key: Optional[str] = None,
@@ -125,6 +127,9 @@ class MediaService(ComfyBaseService):
         seed: Optional[int] = None,
         cfg: Optional[float] = None,
         sampler: Optional[str] = None,
+        # HappyHorse-specific overrides
+        happyhorse_resolution: Optional[str] = None,
+        happyhorse_watermark: Optional[bool] = None,
         **params
     ) -> MediaResult:
         """
@@ -194,6 +199,20 @@ class MediaService(ComfyBaseService):
                 comfyui_url="http://192.168.1.100:8188"
             )
         """
+        # --- HappyHorse provider: short-circuit before ComfyUI workflow resolution ---
+        if media_provider == "happyhorse":
+            logger.info("HappyHorse provider selected, skipping ComfyUI workflow resolution")
+            return await self._call_happyhorse(
+                prompt=prompt,
+                width=width or 1280,
+                height=height or 720,
+                duration=duration,
+                resolution=happyhorse_resolution,
+                watermark=happyhorse_watermark,
+                seed=seed,
+            )
+
+        # --- ComfyUI / RunningHub provider (default) ---
         # 1. Resolve workflow (returns structured info)
         workflow_info = self._resolve_workflow(workflow=workflow)
         
@@ -208,7 +227,7 @@ class MediaService(ComfyBaseService):
         if duration is not None:
             workflow_params["duration"] = duration
             if media_type == "video":
-                logger.info(f"📏 Target video duration: {duration:.2f}s (from TTS audio)")
+                logger.info(f"Target video duration: {duration:.2f}s (from TTS audio)")
         if negative_prompt is not None:
             workflow_params["negative_prompt"] = negative_prompt
         if steps is not None:
@@ -224,8 +243,7 @@ class MediaService(ComfyBaseService):
         workflow_params.update(params)
         
         logger.debug(f"Workflow parameters: {workflow_params}")
-        
-        # 4. Execute workflow using shared ComfyKit instance from core
+
         try:
             # Get shared ComfyKit instance (lazy initialization + config hot-reload)
             kit = await self.core._get_or_create_comfykit()
@@ -285,3 +303,46 @@ class MediaService(ComfyBaseService):
         except Exception as e:
             logger.error(f"Media generation error: {e}")
             raise
+
+    async def _call_happyhorse(
+        self,
+        *,
+        prompt: str,
+        width: int,
+        height: int,
+        duration: Optional[float],
+        resolution: Optional[str],
+        watermark: Optional[bool],
+        seed: Optional[int],
+    ) -> MediaResult:
+        """Route video generation to HappyHorse (DashScope)."""
+        from pixelle_video.services.happyhorse_service import HappyHorseVideoService
+        from pixelle_video.config.manager import config_manager
+
+        cfg = config_manager.config.happyhorse
+        if not cfg.is_configured:
+            raise ValueError(
+                "HappyHorse not configured. Set happyhorse.api_key in config.yaml "
+                "or DASHSCOPE_API_KEY environment variable."
+            )
+
+        svc = HappyHorseVideoService(cfg)
+        result = await svc.generate(
+            prompt=prompt,
+            width=width,
+            height=height,
+            duration=duration,
+            resolution=resolution,
+            watermark=watermark,
+            seed=seed,
+        )
+
+        video_url = result["url"]
+        video_duration = result.get("duration")
+        logger.info(f"✅ HappyHorse generated video: {video_url}")
+
+        return MediaResult(
+            media_type="video",
+            url=video_url,
+            duration=video_duration,
+        )

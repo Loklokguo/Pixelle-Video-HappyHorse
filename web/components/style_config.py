@@ -678,7 +678,16 @@ def render_style_config(pixelle_video):
     # Check if current template requires media generation
     template_media_type = st.session_state.get('template_media_type', 'image')
     template_requires_media = st.session_state.get('template_requires_media', True)
-    
+
+    # Defaults — always defined so the return dict never hits UnboundLocalError
+    media_provider = "comfyui"
+    workflow_key = None
+    prompt_prefix = ""
+    happyhorse_resolution = None
+    happyhorse_duration = None
+    happyhorse_watermark = None
+    happyhorse_seed = None
+
     if template_requires_media:
         # Template requires media - show Media Generation Section
         with st.container(border=True):
@@ -702,53 +711,122 @@ def render_style_config(pixelle_video):
                     st.markdown(tr('style.video_workflow_how'))
                 else:
                     st.markdown(tr("style.workflow_how"))
-        
-            # Get available workflows and filter by template type
-            all_workflows = pixelle_video.media.list_workflows()
-            
-            # Filter workflows based on template media type
+
+            # --- Media provider selection (video templates only) ---
+            media_provider = "comfyui"
             if template_media_type == "video":
-                # Only show video_ workflows
-                workflows = [wf for wf in all_workflows if "video_" in wf["key"].lower()]
+                media_provider = st.radio(
+                    tr("style.media_provider"),
+                    ["comfyui", "happyhorse"],
+                    format_func=lambda x: tr(f"style.media_provider_{x}"),
+                    horizontal=True,
+                    key="media_provider_selector",
+                )
+                st.caption(tr("style.media_provider_hint"))
+
+            if media_provider == "happyhorse" and template_media_type == "video":
+                # --- HappyHorse parameters ---
+                from pixelle_video.config.schema import HappyHorseConfig
+                hh_cfg = config_manager.config.happyhorse
+
+                workflow_key = None  # No workflow for HappyHorse
+
+                hh_col1, hh_col2 = st.columns(2)
+                with hh_col1:
+                    happyhorse_resolution = st.selectbox(
+                        tr("style.happyhorse_resolution"),
+                        ["720P", "1080P"],
+                        index=0 if hh_cfg.default_resolution == "720P" else 1,
+                        key="happyhorse_resolution",
+                    )
+                with hh_col2:
+                    happyhorse_duration = st.number_input(
+                        tr("style.happyhorse_duration"),
+                        min_value=3, max_value=15, value=None, step=1,
+                        placeholder=tr("style.happyhorse_duration_hint"),
+                        key="happyhorse_duration",
+                    )
+
+                hh_col3, hh_col4 = st.columns(2)
+                with hh_col3:
+                    happyhorse_watermark = st.checkbox(
+                        tr("style.happyhorse_watermark"),
+                        value=hh_cfg.watermark,
+                        key="happyhorse_watermark",
+                    )
+                with hh_col4:
+                    happyhorse_seed_input = st.text_input(
+                        tr("style.happyhorse_seed"),
+                        placeholder=tr("style.happyhorse_seed_hint"),
+                        key="happyhorse_seed",
+                    )
+                    happyhorse_seed = int(happyhorse_seed_input) if happyhorse_seed_input.strip() else None
+
+                # Prompt prefix for HappyHorse
+                prompt_prefix = st.text_area(
+                    tr('style.prompt_prefix'),
+                    value="",
+                    placeholder=tr("style.prompt_prefix_placeholder"),
+                    height=80,
+                    label_visibility="visible",
+                    help=tr("style.prompt_prefix_help"),
+                    key="happyhorse_prompt_prefix",
+                )
+
             else:
-                # Only show image_ workflows (exclude video_)
-                workflows = [wf for wf in all_workflows if "video_" not in wf["key"].lower()]
-        
-            # Build options for selectbox
-            # Display: "image_flux.json - Runninghub"
-            # Value: "runninghub/image_flux.json"
-            workflow_options = [wf["display_name"] for wf in workflows]
-            workflow_keys = [wf["key"] for wf in workflows]
-        
-            # Default to first option (should be runninghub by sorting)
-            default_workflow_index = 0
-        
-            # If user has a saved preference in config, try to match it
-            comfyui_config = config_manager.get_comfyui_config()
-            # Select config based on template type (image or video)
-            media_config_key = "video" if template_media_type == "video" else "image"
-            saved_workflow = comfyui_config.get(media_config_key, {}).get("default_workflow", "")
-            if saved_workflow and saved_workflow in workflow_keys:
-                default_workflow_index = workflow_keys.index(saved_workflow)
-        
-            workflow_display = st.selectbox(
-                "Workflow",
-                workflow_options if workflow_options else ["No workflows found"],
-                index=default_workflow_index,
-                label_visibility="collapsed",
-                key="media_workflow_select"
-            )
-        
-            # Get the actual workflow key (e.g., "runninghub/image_flux.json")
-            if workflow_options:
-                workflow_selected_index = workflow_options.index(workflow_display)
-                workflow_key = workflow_keys[workflow_selected_index]
-            else:
-                workflow_key = "runninghub/image_flux.json"  # fallback
-            
-            # Check and warn for selfhost media workflow (auto popup if not confirmed)
-            check_and_warn_selfhost_workflow(workflow_key)
-        
+                # --- ComfyUI / RunningHub workflow selection (default) ---
+                # Get available workflows and filter by template type
+                all_workflows = pixelle_video.media.list_workflows()
+
+                # Filter workflows based on template media type
+                if template_media_type == "video":
+                    # Only show video_ workflows
+                    workflows = [wf for wf in all_workflows if "video_" in wf["key"].lower()]
+                else:
+                    # Only show image_ workflows (exclude video_)
+                    workflows = [wf for wf in all_workflows if "video_" not in wf["key"].lower()]
+
+                # Build options for selectbox
+                workflow_options = [wf["display_name"] for wf in workflows]
+                workflow_keys = [wf["key"] for wf in workflows]
+
+                # Default to first option (should be runninghub by sorting)
+                default_workflow_index = 0
+
+                # If user has a saved preference in config, try to match it
+                comfyui_config = config_manager.get_comfyui_config()
+                media_config_key = "video" if template_media_type == "video" else "image"
+                saved_workflow = comfyui_config.get(media_config_key, {}).get("default_workflow", "")
+                if saved_workflow and saved_workflow in workflow_keys:
+                    default_workflow_index = workflow_keys.index(saved_workflow)
+
+                workflow_display = st.selectbox(
+                    "Workflow",
+                    workflow_options if workflow_options else ["No workflows found"],
+                    index=default_workflow_index,
+                    label_visibility="collapsed",
+                    key="media_workflow_select"
+                )
+
+                if workflow_options:
+                    workflow_selected_index = workflow_options.index(workflow_display)
+                    workflow_key = workflow_keys[workflow_selected_index]
+                else:
+                    workflow_key = "runninghub/image_flux.json"  # fallback
+
+                check_and_warn_selfhost_workflow(workflow_key)
+
+                # Prompt prefix
+                current_prefix = comfyui_config.get(media_config_key, {}).get("prompt_prefix", "")
+                prompt_prefix = st.text_area(
+                    tr('style.prompt_prefix'),
+                    value=current_prefix,
+                    placeholder=tr("style.prompt_prefix_placeholder"),
+                    height=80,
+                    label_visibility="visible",
+                    help=tr("style.prompt_prefix_help")
+                )
+
             # Get media size from template
             media_width = st.session_state.get('template_media_width')
             media_height = st.session_state.get('template_media_height')
@@ -759,21 +837,7 @@ def render_style_config(pixelle_video):
             else:
                 size_info_text = tr('style.image_size_info', width=media_width, height=media_height)
             st.info(f"📐 {size_info_text}")
-        
-            # Prompt prefix input
-            # Get current prompt_prefix from config (based on media type)
-            current_prefix = comfyui_config.get(media_config_key, {}).get("prompt_prefix", "")
-        
-            # Prompt prefix input (temporary, not saved to config)
-            prompt_prefix = st.text_area(
-                tr('style.prompt_prefix'),
-                value=current_prefix,
-                placeholder=tr("style.prompt_prefix_placeholder"),
-                height=80,
-                label_visibility="visible",
-                help=tr("style.prompt_prefix_help")
-            )
-        
+
             # Media preview expander
             preview_title = tr("style.video_preview_title") if template_media_type == "video" else tr("style.preview_title")
             with st.expander(preview_title, expanded=False):
@@ -784,14 +848,14 @@ def render_style_config(pixelle_video):
                 else:
                     test_prompt_label = tr("style.test_prompt")
                     test_prompt_value = "a dog"
-                
+
                 test_prompt = st.text_input(
                     test_prompt_label,
                     value=test_prompt_value,
                     help=tr("style.test_prompt_help"),
                     key="style_test_prompt"
                 )
-            
+
                 # Preview button
                 preview_button_label = tr("style.video_preview") if template_media_type == "video" else tr("style.preview")
                 if st.button(preview_button_label, key="preview_style", use_container_width=True):
@@ -799,18 +863,32 @@ def render_style_config(pixelle_video):
                     with st.spinner(previewing_text):
                         try:
                             from pixelle_video.utils.prompt_helper import build_image_prompt
-                        
+
                             # Build final prompt with prefix
                             final_prompt = build_image_prompt(test_prompt, prompt_prefix)
-                        
-                            # Generate preview media (use user-specified size and media type)
-                            media_result = run_async(pixelle_video.media(
-                                prompt=final_prompt,
-                                workflow=workflow_key,
-                                media_type=template_media_type,
-                                width=int(media_width),
-                                height=int(media_height)
-                            ))
+
+                            # Build media call params
+                            media_call_params = {
+                                "prompt": final_prompt,
+                                "workflow": workflow_key,
+                                "media_type": template_media_type,
+                                "width": int(media_width),
+                                "height": int(media_height),
+                            }
+
+                            # Pass HappyHorse params if provider is happyhorse
+                            if media_provider == "happyhorse":
+                                media_call_params["media_provider"] = "happyhorse"
+                                if happyhorse_resolution:
+                                    media_call_params["happyhorse_resolution"] = happyhorse_resolution
+                                if happyhorse_watermark is not None:
+                                    media_call_params["happyhorse_watermark"] = happyhorse_watermark
+                                if happyhorse_seed is not None:
+                                    media_call_params["seed"] = happyhorse_seed
+                                if happyhorse_duration is not None:
+                                    media_call_params["duration"] = happyhorse_duration
+
+                            media_result = run_async(pixelle_video.media(**media_call_params))
                             preview_media_path = media_result.url
                         
                             # Display preview (support both URL and local path)
@@ -871,6 +949,11 @@ def render_style_config(pixelle_video):
         "frame_template": frame_template,
         "template_params": custom_values_for_video if custom_values_for_video else None,
         "media_workflow": workflow_key,
+        "media_provider": media_provider,
+        "happyhorse_resolution": happyhorse_resolution if media_provider == "happyhorse" else None,
+        "happyhorse_duration": happyhorse_duration if media_provider == "happyhorse" else None,
+        "happyhorse_watermark": happyhorse_watermark if media_provider == "happyhorse" else None,
+        "happyhorse_seed": happyhorse_seed if media_provider == "happyhorse" else None,
         "prompt_prefix": prompt_prefix if prompt_prefix else "",
         "media_width": media_width,
         "media_height": media_height
