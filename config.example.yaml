@@ -50,6 +50,20 @@ comfyui:
     # Video prompt prefix (optional)
     prompt_prefix: "Minimalist black-and-white matchstick figure style illustration, clean lines, simple sketch style"
 
+# ==================== HappyHorse (DashScope) Configuration ====================
+# Text-to-video via Alibaba Cloud DashScope HappyHorse API
+# Set api_key here OR via DASHSCOPE_API_KEY environment variable
+happyhorse:
+  api_key: ""  # DashScope API Key (env var DASHSCOPE_API_KEY takes priority)
+  region: "cn-beijing"  # DashScope region: cn-beijing, ap-southeast-1, us-east-1, eu-central-1
+  workspace_id: ""  # Required for eu-central-1 region (env var DASHSCOPE_WORKSPACE_ID)
+  default_model: "happyhorse-1.0-t2v"  # Default model
+  default_resolution: "720P"  # Default resolution: 720P or 1080P
+  watermark: true  # Add watermark to generated videos
+  poll_interval_seconds: 15  # Polling interval (5-60)
+  timeout_seconds: 600  # Max wait time (60-3600)
+  concurrent_limit: 1  # Concurrent task limit (1-10)
+
 # ==================== Template Configuration ====================
 # Configure default template for video generation
 template:

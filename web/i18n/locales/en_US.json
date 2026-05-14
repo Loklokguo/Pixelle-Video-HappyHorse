@@ -502,6 +502,27 @@
     "selfhost.warning.title": "You have selected a SelfHost (local) workflow. Please confirm the following:",
     "selfhost.warning.message": "1. First, **load and run** `{workflow_path}` workflow in your ComfyUI environment ({comfyui_url})\n2. Ensure the workflow **runs successfully** without missing nodes or models\n3. After the workflow is verified, return to this project to use it",
     "selfhost.warning.hint": "⚠️ If you haven't verified this workflow in ComfyUI, subsequent runs **will definitely fail** (usually 400 error)! Do not skip this step.",
-    "selfhost.warning.confirm": "I understand, continue"
+    "selfhost.warning.confirm": "I understand, continue",
+
+    "style.media_provider": "Media Provider",
+    "style.media_provider_comfyui": "ComfyUI / RunningHub",
+    "style.media_provider_happyhorse": "HappyHorse (DashScope)",
+    "style.media_provider_hint": "Select the backend for video generation",
+    "style.happyhorse_resolution": "Video Resolution",
+    "style.happyhorse_duration": "Video Duration (seconds)",
+    "style.happyhorse_duration_hint": "3-15s, leave empty to use audio duration",
+    "style.happyhorse_watermark": "Watermark",
+    "style.happyhorse_seed": "Random Seed",
+    "style.happyhorse_seed_hint": "Leave empty for random",
+    "settings.happyhorse.title": "🐴 HappyHorse (DashScope)",
+    "settings.happyhorse.api_key": "DashScope API Key",
+    "settings.happyhorse.api_key_help": "Or set env var DASHSCOPE_API_KEY",
+    "settings.happyhorse.region": "Region",
+    "settings.happyhorse.workspace_id": "Workspace ID",
+    "settings.happyhorse.workspace_id_hint": "Required for eu-central-1 region",
+    "settings.happyhorse.default_resolution": "Default Resolution",
+    "settings.happyhorse.watermark": "Default Watermark",
+    "settings.happyhorse.status_configured": "✅ HappyHorse configured",
+    "settings.happyhorse.status_not_configured": "⚠️ HappyHorse not configured (set API key or env var DASHSCOPE_API_KEY)"
   }
 }

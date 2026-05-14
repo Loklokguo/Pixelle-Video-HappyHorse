@@ -502,6 +502,27 @@
     "selfhost.warning.title": "您选择了 SelfHost（本地）工作流，请务必先确认以下事项：",
     "selfhost.warning.message": "1. 请先在您的 ComfyUI 环境（{comfyui_url}）中**单独加载并运行** `{workflow_path}` 工作流\n2. 确保该工作流**能够正常运行完成**，没有节点缺失或模型缺失等错误\n3. 工作流调试通过后，再回到本项目使用",
     "selfhost.warning.hint": "⚠️ 如果您没有在 ComfyUI 中跑通该工作流，后续运行**一定会失败**（通常报 400 错误）！请勿跳过此步骤。",
-    "selfhost.warning.confirm": "我已了解，继续使用"
+    "selfhost.warning.confirm": "我已了解，继续使用",
+
+    "style.media_provider": "媒体提供商",
+    "style.media_provider_comfyui": "ComfyUI / RunningHub",
+    "style.media_provider_happyhorse": "HappyHorse (DashScope)",
+    "style.media_provider_hint": "选择视频生成的后端服务",
+    "style.happyhorse_resolution": "视频分辨率",
+    "style.happyhorse_duration": "视频时长（秒）",
+    "style.happyhorse_duration_hint": "3-15秒，留空则使用语音时长",
+    "style.happyhorse_watermark": "水印",
+    "style.happyhorse_seed": "随机种子",
+    "style.happyhorse_seed_hint": "留空则随机生成",
+    "settings.happyhorse.title": "🐴 HappyHorse (DashScope)",
+    "settings.happyhorse.api_key": "DashScope API Key",
+    "settings.happyhorse.api_key_help": "或设置环境变量 DASHSCOPE_API_KEY",
+    "settings.happyhorse.region": "区域",
+    "settings.happyhorse.workspace_id": "工作空间 ID",
+    "settings.happyhorse.workspace_id_hint": "eu-central-1 区域必填",
+    "settings.happyhorse.default_resolution": "默认分辨率",
+    "settings.happyhorse.watermark": "默认水印",
+    "settings.happyhorse.status_configured": "✅ HappyHorse 已配置",
+    "settings.happyhorse.status_not_configured": "⚠️ HappyHorse 未配置（设置 API Key 或环境变量 DASHSCOPE_API_KEY）"
   }
 }

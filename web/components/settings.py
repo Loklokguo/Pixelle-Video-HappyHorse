@@ -289,7 +289,62 @@ def render_advanced_settings():
                     )
                     # Convert display value back to actual value
                     runninghub_48g_enabled = runninghub_instance_type_display == tr("settings.comfyui.runninghub_instance_48g")
-        
+
+        # ====================================================================
+        # HappyHorse (DashScope) Settings (full width)
+        # ====================================================================
+        import os
+        from pixelle_video.config.schema import HappyHorseConfig
+        hh_cfg = config_manager.config.happyhorse
+
+        with st.container(border=True):
+            st.markdown(f"**{tr('settings.happyhorse.title')}**")
+
+            # Status indicator
+            if hh_cfg.is_configured:
+                st.success(tr("settings.happyhorse.status_configured"))
+            else:
+                st.warning(tr("settings.happyhorse.status_not_configured"))
+
+            hh_row1, hh_row2 = st.columns(2)
+            with hh_row1:
+                happyhorse_api_key = st.text_input(
+                    tr("settings.happyhorse.api_key"),
+                    value=hh_cfg.api_key,
+                    type="password",
+                    help=tr("settings.happyhorse.api_key_help"),
+                    key="happyhorse_api_key_input"
+                )
+            with hh_row2:
+                happyhorse_region = st.selectbox(
+                    tr("settings.happyhorse.region"),
+                    ["cn-beijing", "ap-southeast-1", "us-east-1", "eu-central-1"],
+                    index=["cn-beijing", "ap-southeast-1", "us-east-1", "eu-central-1"].index(hh_cfg.region),
+                    key="happyhorse_region_input"
+                )
+
+            hh_row3, hh_row4 = st.columns(2)
+            with hh_row3:
+                happyhorse_workspace_id = st.text_input(
+                    tr("settings.happyhorse.workspace_id"),
+                    value=hh_cfg.workspace_id,
+                    help=tr("settings.happyhorse.workspace_id_hint"),
+                    key="happyhorse_workspace_id_input"
+                )
+            with hh_row4:
+                happyhorse_default_resolution = st.selectbox(
+                    tr("settings.happyhorse.default_resolution"),
+                    ["720P", "1080P"],
+                    index=0 if hh_cfg.default_resolution == "720P" else 1,
+                    key="happyhorse_default_resolution_input"
+                )
+
+            happyhorse_watermark_default = st.checkbox(
+                tr("settings.happyhorse.watermark"),
+                value=hh_cfg.watermark,
+                key="happyhorse_watermark_input"
+            )
+
         # ====================================================================
         # Action Buttons (full width at bottom)
         # ====================================================================
@@ -315,6 +370,13 @@ def render_advanced_settings():
                         runninghub_concurrent_limit=int(runninghub_concurrent_limit),
                         runninghub_instance_type=instance_type
                     )
+
+                    # Save HappyHorse configuration
+                    config_manager.config.happyhorse.api_key = happyhorse_api_key if happyhorse_api_key else ""
+                    config_manager.config.happyhorse.region = happyhorse_region
+                    config_manager.config.happyhorse.workspace_id = happyhorse_workspace_id if happyhorse_workspace_id else ""
+                    config_manager.config.happyhorse.default_resolution = happyhorse_default_resolution
+                    config_manager.config.happyhorse.watermark = happyhorse_watermark_default
                     
                     # Only save to file if LLM config is valid
                     if llm_api_key and llm_base_url and llm_model:

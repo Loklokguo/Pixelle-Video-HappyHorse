@@ -48,6 +48,11 @@ class StoryboardConfig:
     
     # Media workflow
     media_workflow: Optional[str] = None       # Media workflow filename (image or video, None = use default)
+    media_provider: str = "comfyui"            # Media provider: "comfyui" or "happyhorse"
+    happyhorse_resolution: Optional[str] = None  # HappyHorse resolution override (720P/1080P)
+    happyhorse_duration: Optional[int] = None    # HappyHorse duration override (3-15s), takes priority over TTS duration
+    happyhorse_watermark: Optional[bool] = None  # HappyHorse watermark override
+    happyhorse_seed: Optional[int] = None        # HappyHorse seed override
     
     # Frame template (includes size information in path)
     frame_template: str = "1080x1920/default.html"  # Template path with size (e.g., "1080x1920/default.html")
