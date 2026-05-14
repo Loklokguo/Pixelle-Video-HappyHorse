@@ -1,4 +1,9 @@
-<h1 align="center">🎬 Pixelle-Video —— AI 全自动短视频引擎</h1>
+<h1 align="center">🎬 Pixelle-Video (HappyHorse Edition) —— AI 全自动短视频引擎</h1>
+
+<p align="center">
+  <b>⭐ 本仓库是 <a href="https://github.com/AIDC-AI/Pixelle-Video">AIDC-AI/Pixelle-Video</a> 的社区 Fork，新增 <a href="#-happyhorse-文生视频">HappyHorse (DashScope) 文生视频</a> 集成。</b><br/>
+  原始项目采用 <a href="LICENSE">Apache 2.0</a> 许可证，感谢 AIDC-AI 的开源贡献。
+</p>
 
 <p align="center"><a href="README_EN.md">English</a> | <b>中文</b></p>
 
@@ -59,6 +64,55 @@ https://github.com/user-attachments/assets/a42e7457-fcc8-40da-83fc-784c45a8b95d
 - ✅ **多种 AI 模型** - 支持 GPT、通义千问、DeepSeek、Ollama 等
 - ✅ **原子能力灵活组合** - 基于 ComfyUI 架构，可使用预置工作流，也可自定义任意能力（如替换生图模型为 FLUX、替换 TTS 为 ChatTTS 等）
 
+
+## 🐴 HappyHorse 文生视频
+
+本 Fork 新增了 [HappyHorse (DashScope)](https://dashscope.aliyuncs.com) 文生视频能力，作为 ComfyUI/RunningHub 之外的第二条视频生成后端。
+
+**特点：**
+- 无需本地 GPU 或 ComfyUI，云端直接生成视频
+- 支持 720P / 1080P，3-15 秒时长
+- 支持 16:9、9:16、1:1 等多种比例
+- 环境变量覆盖配置，适配 Docker 部署
+
+**快速使用：**
+
+```bash
+# 1. 设置环境变量
+export DASHSCOPE_API_KEY="sk-your-key"
+
+# 2. 启动 Web UI
+uv run streamlit run web/app.py
+
+# 3. 选择 video_*. 模板 → 媒体提供商选 "HappyHorse"
+```
+
+**API 调用：**
+
+```bash
+curl -X POST http://localhost:8000/api/video/generate/sync \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "一只猫在草地上奔跑",
+    "frame_template": "1080x1920/video_default.html",
+    "media_provider": "happyhorse",
+    "happyhorse_resolution": "720P"
+  }'
+```
+
+**配置项（config.yaml）：**
+
+```yaml
+happyhorse:
+  api_key: ""                    # 或 DASHSCOPE_API_KEY 环境变量
+  region: "cn-beijing"           # cn-beijing / ap-southeast-1 / us-east-1
+  default_resolution: "720P"
+  watermark: true
+```
+
+> 📖 完整文档见 [config.example.yaml](config.example.yaml) 和 [tests/test_happyhorse.py](tests/test_happyhorse.py)。
+
+---
 
 ## 📊 视频生成流程
 
@@ -400,6 +454,8 @@ A: **本项目完全支持免费运行！**
 
 Pixelle-Video 的设计受到以下优秀开源项目的启发：
 
+- [AIDC-AI/Pixelle-Video](https://github.com/AIDC-AI/Pixelle-Video) - 原始项目，本 Fork 的基础（Apache 2.0）
+- [DashScope HappyHorse](https://dashscope.aliyuncs.com) - 阿里云 DashScope 文生视频 API
 - [Pixelle-MCP](https://github.com/AIDC-AI/Pixelle-MCP) - ComfyUI MCP 服务器，让 AI 助手直接调用 ComfyUI
 - [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) - 优秀的视频生成工具
 - [NarratoAI](https://github.com/linyqh/NarratoAI) - 影视解说自动化工具
@@ -420,17 +476,17 @@ Pixelle-Video 的设计受到以下优秀开源项目的启发：
 
 ## 📢 反馈与支持
 
-- 🐛 **遇到问题**: 提交 [Issue](https://github.com/AIDC-AI/Pixelle-Video/issues)
-- 💡 **功能建议**: 提交 [Feature Request](https://github.com/AIDC-AI/Pixelle-Video/issues)
+- 🐛 **HappyHorse 相关问题**: 提交 [Issue](https://github.com/Loklokguo/Pixelle-Video-HappyHorse/issues)
+- 🐛 **原始项目问题**: 提交 [Issue](https://github.com/AIDC-AI/Pixelle-Video/issues)
 - ⭐ **给个 Star**: 如果这个项目对你有帮助，欢迎给个 Star 支持一下！
 
 
 ## 📝 许可证
 
-本项目采用 Apache 2.0 许可证，详情请查看 [LICENSE](LICENSE) 文件。
+本项目基于 [AIDC-AI/Pixelle-Video](https://github.com/AIDC-AI/Pixelle-Video)（Apache 2.0 许可证）。本 Fork 新增的 HappyHorse 集成代码同样遵循 Apache 2.0 许可证。详情请查看 [LICENSE](LICENSE) 文件。
 
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=AIDC-AI/Pixelle-Video&type=Date)](https://star-history.com/#AIDC-AI/Pixelle-Video&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Loklokguo/Pixelle-Video-HappyHorse&type=Date)](https://star-history.com/#Loklokguo/Pixelle-Video-HappyHorse&Date)
 
